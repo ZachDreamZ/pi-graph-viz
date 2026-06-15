@@ -17,6 +17,7 @@ pi install npm:pi-graph-viz
 - **Type filter**: Filter nodes by type (file, function, class, module).
 - **Node details**: Click any node to see its type, file, line, in-degree, and out-degree.
 - **Nexus integration**: Reads pi-impact-analyzer JSON output directly.
+- **Live server**: Serve the visualization on localhost with SSE auto-reload — the browser updates automatically when the graph is regenerated.
 
 ## Usage
 
@@ -43,9 +44,31 @@ Options:
 
 ### Via Command (TUI)
 
+Generate and save:
+
 ```
 /graph-viz path/to/graph.json
 ```
+
+Start a live localhost server:
+
+```
+/graph-viz serve [path-to-graph.json]
+```
+
+Stop the server:
+
+```
+/graph-viz stop
+```
+
+### Via Tool with Live Server
+
+```
+graph_viz type=json graph='...' serve=true
+```
+
+The live server supports SSE-based auto-reload: the browser page automatically refreshes when the graph is regenerated.
 
 The JSON file should contain:
 
