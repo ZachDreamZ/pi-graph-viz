@@ -30,6 +30,11 @@ export class LiveReportServer {
 	}
 
 	async start(): Promise<void> {
+		// Kill any pre-existing server (singleton pattern)
+		if (this.server) {
+			this.stop();
+		}
+
 		return new Promise((resolve, reject) => {
 			this.server = http.createServer(this.boundRequestHandler);
 			this.server.listen(0, "127.0.0.1", () => {
@@ -60,6 +65,10 @@ export class LiveReportServer {
 		this.sseClients.clear();
 
 		if (this.server) {
+			// Force-close all connections synchronously (prevents libuv assertion on Windows)
+			if (typeof this.server.closeAllConnections === "function") {
+				this.server.closeAllConnections();
+			}
 			this.server.close();
 			this.server = null;
 		}

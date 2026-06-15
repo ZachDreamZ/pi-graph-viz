@@ -286,10 +286,8 @@ export default function piGraphViz(pi: ExtensionAPI): void {
 					if (!server || !server.isRunning()) {
 						server = new LiveReportServer();
 						await server.start();
-						server.updateHtml(html);
-					} else {
-						server.updateHtml(html);
 					}
+					server.updateHtml(html);
 					serverInfo = `\n  Live server: ${server.url}\n  Open in browser: ${server.url}`;
 				}
 
@@ -325,6 +323,18 @@ export default function piGraphViz(pi: ExtensionAPI): void {
 				};
 			}
 		},
+	});
+
+	// Cleanup on process exit
+	pi.on("session_shutdown", () => {
+		if (server) server.stop();
+	});
+
+	process.on("SIGINT", () => {
+		if (server) server.stop();
+	});
+	process.on("SIGTERM", () => {
+		if (server) server.stop();
 	});
 
 	// Register commands
@@ -391,7 +401,7 @@ export default function piGraphViz(pi: ExtensionAPI): void {
 					}
 				} else if (parts[0]) {
 					// Plain file path - just generate and save
-					const { readFileSync, existsSync } =
+					const { readFileSync, existsSync, writeFileSync } =
 						require("node:fs") as typeof import("node:fs");
 					if (existsSync(args)) {
 						try {
@@ -400,11 +410,10 @@ export default function piGraphViz(pi: ExtensionAPI): void {
 								? (data as Graph)
 								: convertImpactToGraph(data);
 							const html = generateAndServe(graph);
-							const outputPath = "graph-viz-report.html";
-							const { writeFileSync } =
-								require("node:fs") as typeof import("node:fs");
-							writeFileSync(outputPath, html, "utf-8");
-							console.log("Graph visualization saved to: " + outputPath);
+							writeFileSync("graph-viz-report.html", html, "utf-8");
+							console.log(
+								"Graph visualization saved to: graph-viz-report.html",
+							);
 						} catch (e) {
 							console.error("Failed to parse JSON: " + (e as Error).message);
 						}

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0] - 2026-06-16
+### Bug Fixes & Reliability
+- Fixed libuv assertion crash on Windows: `stop()` now calls `closeAllConnections()` before `close()`.
+- Added singleton server pattern: starting a new server kills any existing one first.
+- Added process cleanup handlers (`session_shutdown`, `SIGINT`, `SIGTERM`) to prevent orphaned servers.
+- Removed redundant file reads in `/graph-viz` command handler.
+
 ## [0.2.0] - 2026-06-15
 ### Live Server & Design Enhancement
 - LiveReportServer: serve graph on localhost with SSE-based auto-reload.
