@@ -126,6 +126,8 @@ export class GraphGenerator {
 			'<div class="stat stat-cycle"><strong>' +
 			analysis.cycleCount +
 			"</strong> cycles</div>\n";
+		html +=
+			'<div class="stat"><span id="live-status" style="font-size:11px;color:var(--ink-tertiary)">Offline</span></div>\n';
 		html += "</div>\n</header>\n";
 		html += '<div class="toolbar">\n';
 		html +=
@@ -271,6 +273,19 @@ export class GraphGenerator {
 		html +=
 			'document.querySelectorAll(".node-group").forEach(function(g){g.style.opacity=(t==="all"||g.getAttribute("data-type")===t)?"1":"0.2"});\n';
 		html += "});\n";
+		// SSE auto-reload for live server
+		html += "\n// SSE auto-reload\n";
+		html += "var mt=document.querySelector('meta[name=graph-viz-token]');\n";
+		html += "var tk=mt?mt.getAttribute('content'):'';\n";
+		html += "if(tk){\n";
+		html += "var es=new EventSource('/events?token='+tk);\n";
+		html +=
+			"es.onmessage=function(e){try{var d=JSON.parse(e.data);if(d.type==='update')location.reload()}catch(ex){}};\n";
+		html +=
+			"es.onopen=function(){var el=document.getElementById('live-status');if(el){el.textContent='Live';el.style.color='var(--accent-hover)'}};\n";
+		html +=
+			"es.onerror=function(){var el=document.getElementById('live-status');if(el){el.textContent='Offline';el.style.color='var(--danger)'}};\n";
+		html += "}\n";
 		html += "})();\n";
 		html += "</script>\n</body>\n</html>";
 

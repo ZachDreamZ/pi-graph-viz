@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.0] - 2026-06-15
+### Live Server & Design Enhancement
+- LiveReportServer: serve graph on localhost with SSE-based auto-reload.
+- `/graph-viz serve [path.json]` — start live server from command line.
+- `/graph-viz stop` — stop the live server.
+- `graph_viz` tool now supports `serve: true` parameter for instant localhost viewing.
+- SSE auto-refresh: browser auto-reloads when graph is regenerated.
+- Live status indicator in header showing "Live" (green) / "Offline" (red).
+- Token-based authentication for SSE endpoint.
+- Origin validation for SSE connections.
+- Enhanced header stats visual design with Linear design tokens.
+
 ## [0.1.0] - 2026-06-15
 ### Initial Release
 - GraphAnalyzer with cycle detection, depth computation, root/leaf/orphan identification.
