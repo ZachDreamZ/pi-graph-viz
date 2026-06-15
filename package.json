@@ -1,0 +1,38 @@
+{
+  "name": "pi-graph-viz",
+  "version": "0.1.0",
+  "description": "Interactive dependency graph visualizer for Pi. Renders AST call graphs (from pi-impact-analyzer or any JSON) as self-contained HTML with cycle detection and hierarchical layout.",
+  "keywords": [
+    "pi-package",
+    "graph",
+    "visualization",
+    "dependency-graph",
+    "impact-analyzer"
+  ],
+  "pi": {
+    "extensions": [
+      "./extensions"
+    ]
+  },
+  "files": [
+    "extensions",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "pi-coding-agent": "*"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "@types/node": "^20.19.43",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.4.11",
+    "typescript": "^5.9.3"
+  }
+}

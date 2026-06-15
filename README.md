@@ -1,0 +1,108 @@
+# pi-graph-viz
+
+Interactive dependency graph visualizer for the Pi coding agent. Renders any dependency or call graph (from pi-impact-analyzer or direct JSON input) as a self-contained HTML visualization with cycle highlighting, search, and hierarchical layout.
+
+## Installation
+
+```
+pi install npm:pi-graph-viz
+```
+
+## Features
+
+- **Self-contained HTML**: No CDN, no external dependencies. The visualization is a single HTML file with inline CSS and SVG.
+- **Hierarchical layout**: Nodes arranged by dependency depth (top-down or left-right).
+- **Cycle detection**: Circular dependencies highlighted in red with a dedicated cycle panel.
+- **Search**: Find nodes by id or label. Non-matching nodes are dimmed.
+- **Type filter**: Filter nodes by type (file, function, class, module).
+- **Node details**: Click any node to see its type, file, line, in-degree, and out-degree.
+- **Nexus integration**: Reads pi-impact-analyzer JSON output directly.
+
+## Usage
+
+### Via Tool (LLM/agent)
+
+Render a graph from direct JSON input:
+
+```
+graph_viz type=json graph='{"nodes":[{"id":"a","label":"A"},{"id":"b","label":"B"}],"edges":[{"source":"a","target":"b"}]}'
+```
+
+Render pi-impact-analyzer output:
+
+```
+graph_viz type=impact output=./report.html
+```
+
+Options:
+
+- `output`: Output path for the HTML file (default: `graph-viz-report.html`).
+- `title`: Optional title for the visualization.
+- `direction`: Layout direction, `"TB"` (top-bottom) or `"LR"` (left-right, default: `"TB"`).
+- `highlightCycles`: Highlight cycles in red (default: `true`).
+
+### Via Command (TUI)
+
+```
+/graph-viz path/to/graph.json
+```
+
+The JSON file should contain:
+
+```json
+{
+  "nodes": [
+    { "id": "auth", "label": "AuthModule", "type": "module", "file": "src/auth.ts" },
+    { "id": "login", "label": "login", "type": "function", "file": "src/auth.ts", "line": 42 }
+  ],
+  "edges": [
+    { "source": "login", "target": "validateToken" },
+    { "source": "validateToken", "target": "db" }
+  ]
+}
+```
+
+## Integration with Nexus
+
+pi-graph-viz is part of the Nexus monorepo and pairs naturally with:
+
+- **pi-impact-analyzer**: Renders its impact analysis output as an interactive graph.
+- **pi-smart-reader**: Quick file-level dependency visualization.
+- **pi-audit-master**: Visualize audit findings as a dependency graph.
+
+## Graph Data Types
+
+| Field | Type | Description |
+|---|---|---|
+| `nodes` | Array | Array of `{id, label, type?, file?, line?}` |
+| `edges` | Array | Array of `{source, target, type?, weight?}` |
+| `title` | string | Optional title for the visualization |
+| `metadata` | object | Optional metadata key-value pairs |
+
+### Node types
+
+- `file` - Source file
+- `function` - Function or method
+- `class` - Class definition
+- `module` - Module or namespace
+
+### Edge types
+
+- `imports` - Import relationship
+- `calls` - Function call
+- `extends` - Class inheritance
+- `uses` - Generic usage
+
+## Development
+
+```
+git clone https://github.com/ZachDreamZ/pi-graph-viz.git
+cd pi-graph-viz
+npm install
+npm run build
+npm test
+```
+
+## License
+
+MIT
