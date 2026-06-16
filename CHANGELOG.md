@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.4.0] - 2026-06-16
+### Critical Bug Fixes
+- Fixed `svgXY()` null crash: `getScreenCTM()` can return null before SVG is in DOM.
+- Fixed `rectHit()` NaN: source === target now returns valid fallback coordinates.
+- Fixed `findCycles()` stack overflow: recursive DFS replaced with iterative DFS.
+- Fixed non-deterministic force layout: added seeded PRNG (mulberry32) for consistent renders.
+- Improved `isDuplicateCycle()` from O(n²) to O(n) using canonical rotation.
+- Fixed process handler stacking: `SIGINT`/`SIGTERM` now use `once()` + `removeAllListeners`.
+
 ## [0.3.0] - 2026-06-16
 ### Bug Fixes & Reliability
 - Fixed libuv assertion crash on Windows: `stop()` now calls `closeAllConnections()` before `close()`.

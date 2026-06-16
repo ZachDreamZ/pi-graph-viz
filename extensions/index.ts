@@ -325,20 +325,24 @@ export default function piGraphViz(pi: ExtensionAPI): void {
 		},
 	});
 
-	// Cleanup on process exit
-	pi.on("session_shutdown", () => {
-		if (server) server.stop();
-	});
+	// Cleanup on process exit (use once to prevent stacking on reload)
+	const cleanup = () => {
+		if (server) {
+			server.stop();
+			server = null;
+		}
+	};
 
-	process.on("SIGINT", () => {
-		if (server) server.stop();
-	});
-	process.on("SIGTERM", () => {
-		if (server) server.stop();
-	});
+	pi.on("session_shutdown", cleanup);
+
+	// Use once to prevent stacking if extension is reloaded
+	process.removeAllListeners("SIGINT");
+	process.removeAllListeners("SIGTERM");
+	process.once("SIGINT", cleanup);
+	process.once("SIGTERM", cleanup);
 
 	// Register commands
-	(pi as ExtensionAPI & { registerCommand: Function }).registerCommand?.(
+	(pi as ExtensionAPI & { registerCommand?: Function }).registerCommand?.(
 		"graph-viz",
 		{
 			description:
