@@ -7,6 +7,7 @@ import * as crypto from "node:crypto";
 export class LiveReportServer {
 	private server: http.Server | null = null;
 	private sseClients: Set<http.ServerResponse> = new Set();
+	private heartbeats: Set<NodeJS.Timeout> = new Set();
 	private token: string;
 	private currentHtml: string = "";
 	private _port: number = 0;
@@ -54,6 +55,12 @@ export class LiveReportServer {
 	}
 
 	stop(): void {
+		// Clear all heartbeat intervals
+		for (const h of this.heartbeats) {
+			clearInterval(h);
+		}
+		this.heartbeats.clear();
+
 		// Close all SSE clients
 		for (const client of this.sseClients) {
 			try {
@@ -68,8 +75,10 @@ export class LiveReportServer {
 			// Force-close all connections synchronously (prevents libuv assertion on Windows)
 			if (typeof this.server.closeAllConnections === "function") {
 				this.server.closeAllConnections();
+			} else {
+				// Fallback for older Node.js versions
+				this.server.close();
 			}
-			this.server.close();
 			this.server = null;
 		}
 		this._port = 0;
@@ -151,7 +160,21 @@ export class LiveReportServer {
 
 		this.sseClients.add(res);
 
+		// Heartbeat to keep connection alive (every 30s)
+		const heartbeat = setInterval(() => {
+			try {
+				res.write(": heartbeat\n\n");
+			} catch {
+				clearInterval(heartbeat);
+				this.heartbeats.delete(heartbeat);
+				this.sseClients.delete(res);
+			}
+		}, 30000);
+		this.heartbeats.add(heartbeat);
+
 		req.on("close", () => {
+			clearInterval(heartbeat);
+			this.heartbeats.delete(heartbeat);
 			this.sseClients.delete(res);
 		});
 	}
@@ -165,10 +188,13 @@ export class LiveReportServer {
 			return;
 		}
 
+		// Escape token for safe HTML injection
+		const safeToken = this.token.replace(/"/g, '&quot;');
+
 		// Inject token as meta tag for JS to read
 		const injected = this.currentHtml.replace(
 			"</head>",
-			`<meta name="graph-viz-token" content="${this.token}">\n<script>\n(function(){var t=document.querySelector('meta[name="graph-viz-token"]');if(t)window.__GRAPH_VIZ_TOKEN=t.getAttribute('content');})();\n</script>\n</head>`,
+			`<meta name="graph-viz-token" content="${safeToken}">\n<script>\n(function(){var t=document.querySelector('meta[name="graph-viz-token"]');if(t)window.__GRAPH_VIZ_TOKEN=t.getAttribute('content');})();\n</script>\n</head>`,
 		);
 
 		res.writeHead(200, {

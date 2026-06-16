@@ -6,8 +6,14 @@ import type { Graph, RenderOptions } from "./types";
 import { GraphGenerator } from "./generator";
 import { GraphAnalyzer } from "./analyzer";
 import { LiveReportServer } from "./live-server";
+import { readFileSync, existsSync, writeFileSync, mkdirSync } from "node:fs";
+import { dirname } from "node:path";
 
 export { type Graph, GraphGenerator, GraphAnalyzer, LiveReportServer };
+
+// Store handlers for proper cleanup
+let sigintHandler: (() => void) | null = null;
+let sigtermHandler: (() => void) | null = null;
 
 /**
  * Convert pi-impact-analyzer JSON output to a Graph structure.
@@ -101,9 +107,6 @@ export default function piGraphViz(pi: ExtensionAPI): void {
 	}
 
 	function writeOutput(html: string, outputPath: string): string {
-		const { writeFileSync, mkdirSync, existsSync } =
-			require("node:fs") as typeof import("node:fs");
-		const { dirname } = require("node:path") as typeof import("node:path");
 		const dir = dirname(outputPath);
 		if (dir && !existsSync(dir)) {
 			mkdirSync(dir, { recursive: true });
@@ -243,8 +246,10 @@ export default function piGraphViz(pi: ExtensionAPI): void {
 							);
 							if (impactFile)
 								impactData = readFileSync(join(ctx.cwd, impactFile), "utf-8");
-						} catch {
-							/* ignore */
+						} catch (err: any) {
+							if (process.env.DEBUG || process.env.PI_DEBUG) {
+								console.error('[pi-graph-viz] Error reading directory:', err.message);
+							}
 						}
 					}
 					if (!impactData) {
@@ -335,11 +340,15 @@ export default function piGraphViz(pi: ExtensionAPI): void {
 
 	pi.on("session_shutdown", cleanup);
 
-	// Use once to prevent stacking if extension is reloaded
-	process.removeAllListeners("SIGINT");
-	process.removeAllListeners("SIGTERM");
-	process.once("SIGINT", cleanup);
-	process.once("SIGTERM", cleanup);
+	// Clean up any previous handlers to prevent stacking
+	if (sigintHandler) process.removeListener("SIGINT", sigintHandler);
+	if (sigtermHandler) process.removeListener("SIGTERM", sigtermHandler);
+
+	// Register new handlers
+	sigintHandler = cleanup;
+	sigtermHandler = cleanup;
+	process.once("SIGINT", sigintHandler);
+	process.once("SIGTERM", sigtermHandler);
 
 	// Register commands
 	(pi as ExtensionAPI & { registerCommand?: Function }).registerCommand?.(
@@ -399,14 +408,16 @@ export default function piGraphViz(pi: ExtensionAPI): void {
 					if (server && server.isRunning()) {
 						server.stop();
 						server = null;
-						console.log("Graph-viz server stopped.");
+						if (process.env.DEBUG || process.env.PI_DEBUG) {
+								console.log("Graph-viz server stopped.");
+						}
 					} else {
-						console.log("No server running.");
+						if (process.env.DEBUG || process.env.PI_DEBUG) {
+								console.log("No server running.");
+						}
 					}
 				} else if (parts[0]) {
 					// Plain file path - just generate and save
-					const { readFileSync, existsSync, writeFileSync } =
-						require("node:fs") as typeof import("node:fs");
 					if (existsSync(args)) {
 						try {
 							const data = JSON.parse(readFileSync(args, "utf-8"));
@@ -415,11 +426,11 @@ export default function piGraphViz(pi: ExtensionAPI): void {
 								: convertImpactToGraph(data);
 							const html = generateAndServe(graph);
 							writeFileSync("graph-viz-report.html", html, "utf-8");
-							console.log(
-								"Graph visualization saved to: graph-viz-report.html",
-							);
+							if (process.env.DEBUG || process.env.PI_DEBUG) {
+								console.log("Graph visualization saved to: graph-viz-report.html");
+							}
 						} catch (e) {
-							console.error("Failed to parse JSON: " + (e as Error).message);
+							console.error("Failed to parse JSON: " + ((e as Error)?.message || "Unknown error"));
 						}
 					} else {
 						console.error("File not found: " + args);

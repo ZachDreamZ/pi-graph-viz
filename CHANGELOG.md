@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.1] - 2026-06-16
+### Security & Reliability (Audit Fix Release)
+- **Fixed critical signal listener removal**: Replaced dangerous `process.removeAllListeners()` with proper handler tracking and cleanup.
+- **Added XSS protection**: Token value now escaped before HTML injection in live-server.
+- **Added Node.js fallback**: Graceful handling for older Node.js versions without `closeAllConnections()`.
+- **Removed redundant require()**: Moved fs/path imports to module level for better performance.
+- **Added heartbeat cleanup**: Server now properly clears all heartbeat intervals on stop.
+- **Added debug logging**: Silent catch blocks now log errors when `DEBUG=1` or `PI_DEBUG=1` environment variables are set.
+- **Improved error handling**: Added null checks for error message concatenation.
+- **Performance verified**: All metrics pass thresholds with no regression.
+- **Audit report**: Full audit available in `AUDIT-REPORT.md`.
+
 ## [0.4.0] - 2026-06-16
 ### Critical Bug Fixes
 - Fixed `svgXY()` null crash: `getScreenCTM()` can return null before SVG is in DOM.

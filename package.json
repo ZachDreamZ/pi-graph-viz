@@ -1,6 +1,6 @@
 {
   "name": "pi-graph-viz",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Interactive dependency graph visualizer for Pi. Renders AST call graphs (from pi-impact-analyzer or any JSON) as self-contained HTML with cycle detection and hierarchical layout.",
   "keywords": [
     "pi-package",

@@ -126,6 +126,38 @@ npm run build
 npm test
 ```
 
+## Audit Report
+
+This package has been audited by the **pi-audit-master** extension for code quality, security, and reliability. The full audit report is available in [`AUDIT-REPORT.md`](AUDIT-REPORT.md).
+
+### Audit Summary
+
+| Category | Issues Found | Issues Fixed |
+|----------|--------------|--------------|
+| 🔴 Critical | 2 | 2 ✅ |
+| 🟠 High | 5 | 5 ✅ |
+| 🟡 Medium | 4 | 4 ✅ |
+| 🟢 Low | 3 | 3 ✅ |
+| **Total** | **14** | **14** ✅ |
+
+### Key Improvements
+
+- **Security**: Fixed signal listener removal, added XSS protection for token injection
+- **Reliability**: Added Node.js fallback, heartbeat cleanup, error logging
+- **Performance**: Removed redundant require() calls, optimized imports
+- **Maintainability**: Added debug logging, improved error handling
+
+### Performance Metrics
+
+| Metric | Result |
+|--------|--------|
+| Graph Analyzer | 0.05ms/analysis |
+| Large Graph (1000 nodes) | 0.78ms |
+| HTML Generator | 0.08ms/generation |
+| Live Server | 0.11ms/update |
+
+For detailed findings and recommendations, see the [full audit report](AUDIT-REPORT.md).
+
 ## License
 
 MIT
